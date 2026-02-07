@@ -4,7 +4,8 @@ import cv2
 import base64
 from flask_cors import CORS
 import os
-from scripts.detector import HandsTracker
+from backend.detector import HandsTracker
+from backend.asl_classifier import ASLClassifier
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -12,6 +13,7 @@ CORS(app)
 
 # Target frame rate for the game loop (in FPS)
 GAME_FRAME_RATE = 30  
+BASE_CONFIDENCE_THRESHOLD = 0.8  # Minimum confidence to consider a detection valid
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIST = os.path.join(ROOT_DIR, 'game', 'dist')
@@ -35,6 +37,7 @@ def handle_connect():
 def video_stream_task():
     cap = cv2.VideoCapture(0) # 0 is the webcam
     tracker = HandsTracker()
+    classifier = ASLClassifier()
     
     while cap.isOpened():
 
@@ -43,17 +46,31 @@ def video_stream_task():
 
         if frame is None:
             continue  # Skip if frame couldn't be read
-
-        # 2. MEDIA PIPE LOGIC GOES HERE
-        # detected_letter = check_asl_logic(hand_landmarks)
         
         _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 60])
         b64_frame = base64.b64encode(buffer).decode('utf-8')
 
+        hand_buffer = {"left": {"letter": "", "confidence": 0.0}, "right": {"letter": "", "confidence": 0.0}}
+
+        if tracker.left_hand:
+            letter, confidence = classifier.classify(tracker.get_left_hand())
+            if confidence > BASE_CONFIDENCE_THRESHOLD:  # Only send if confidence is above threshold
+              hand_buffer["left"] = {"letter": letter, "confidence": confidence}
+            else:
+              hand_buffer["left"] = {"letter": "", "confidence": confidence}
+
+        if tracker.right_hand:
+            letter, confidence = classifier.classify(tracker.get_right_hand())
+            if confidence > BASE_CONFIDENCE_THRESHOLD:  # Only send if confidence is above threshold
+              hand_buffer["right"] = {"letter": letter, "confidence": confidence}
+            else:
+              hand_buffer["right"] = {"letter": "", "confidence": confidence}
+
         socketio.emit('video_data', {
             'image': b64_frame,
-            'letter': 'F', # Replace with logic
-            'buffer': 'FI' # Replace with logic
+            'left': hand_buffer["left"],
+            'right': hand_buffer["right"],
+            'buffer': "FI"
         })
         
         socketio.sleep(1.0 / GAME_FRAME_RATE)

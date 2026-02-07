@@ -3,17 +3,21 @@
   import { io } from "socket.io-client";
 
   const SignRPG = () => {
-    const [currentSpell, setCurrentSpell] = useState("");
-    const [videoFrame, setVideoFrame] = useState(null);
-    const [activeSpells, setActiveSpells] = useState([]);
+    const [currentMove, setCurrentMove] = useState("");    // Current move command by right hand
+    const [currentSpell, setCurrentSpell] = useState("");  // Current spell letter by left hand
+    const [spellBuffer, setSpellBuffer] = useState("");    // Buffer of recent letters for spell casting
+    const [videoFrame, setVideoFrame] = useState(null);    // Latest video frame from webcam
+    const [activeSpells, setActiveSpells] = useState([]);  // Current active spells
 
     useEffect(() => {
         const socket = io("http://localhost:8000");
 
         socket.on("video_data", (data) => {
             setVideoFrame("data:image/jpeg;base64," + data.image);
-            setCurrentSpell(data.buffer);
             console.log(data);
+            setCurrentMove(data.left);
+            setCurrentSpell(data.right);
+            setSpellBuffer(data.buffer);
         });
 
         return () => socket.disconnect();
@@ -49,14 +53,16 @@
                 <div className="text-slate-500 text-[10px] animate-pulse">CONNECTING TO CAMERA...</div>
               )}
             </div>
-            <div className="bg-slate-800/60 px-4 py-3 border-t border-purple-500/20 text-xs space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-purple-300">Left Hand:</span>
-                <span className="text-white font-mono">{currentSpell.left || "—"}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-purple-300">Right Hand:</span>
-                <span className="text-white font-mono">{currentSpell.right || "—"}</span>
+            <div className="bg-slate-800/60 px-4 py-3 border-t border-purple-500/20 text-xs">
+              <div className="flex gap-4 justify-between">
+                <div className="flex flex-col items-center flex-1">
+                  <span className="text-purple-300 mb-1">Left Hand</span>
+                  <span className="text-white font-mono text-lg">{currentMove.letter || "—"}</span>
+                </div>
+                <div className="flex flex-col items-center flex-1">
+                  <span className="text-purple-300 mb-1">Right Hand</span>
+                  <span className="text-white font-mono text-lg">{currentSpell.letter || "—"}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -71,7 +77,7 @@
               <div 
                 key={i}
                 className={`w-12 h-16 rounded-lg flex items-center justify-center text-2xl font-black border-2 transition-all duration-300 ${
-                  currentSpell.includes(char) 
+                  spellBuffer.includes(char) 
                   ? "bg-orange-500 border-orange-300 text-white shadow-[0_0_20px_rgba(249,115,22,0.6)]" 
                   : "bg-black/40 border-slate-700 text-slate-600"
                 }`}
