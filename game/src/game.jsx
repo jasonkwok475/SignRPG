@@ -5,6 +5,7 @@ import SpellIcon from './components/SpellIcon';
 import MovementKey from './components/MovementKey';
 import RenderMap from './components/RenderMap';
 import PlayerSprite from './components/PlayerSprite';
+import { Monster, MONSTER_CONFIGS } from './components/MonsterSprites';
 
 const SPELL_HOLD_TIME = 500; // milliseconds
 const MOVE_SPEED = 5; // pixels per frame
@@ -31,6 +32,7 @@ const SignRPG = () => {
   const [videoFrame, setVideoFrame] = useState(null);
   const [lastCastSpell, setLastCastSpell] = useState(null); // For animation
   const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
+  const [monsters, setMonsters] = useState([]);
   
   // Ref to track the timer for the hold requirement
   const holdTimerRef = useRef(null);
@@ -96,6 +98,49 @@ const SignRPG = () => {
     return () => clearTimeout(holdTimerRef.current);
   }, [currentSpell]);
 
+  // Spawning Logic
+  useEffect(() => {
+    const spawnInterval = setInterval(() => {
+      if (monsters.length < 5) { // Cap monster count
+        const newMonster = {
+          id: Math.random(),
+          type: Math.random() > 0.5 ? 'GOBLIN' : 'SKELETON',
+          // Spawn randomly around the player
+          x: playerPos.x + (Math.random() * 800 - 400),
+          y: playerPos.y + (Math.random() * 800 - 400),
+          hp: 30
+        };
+        setMonsters(prev => [...prev, newMonster]);
+      }
+    }, 3000); // Spawn every 3 seconds
+    return () => clearInterval(spawnInterval);
+  }, [monsters.length, playerPos]);
+
+  // AI Movement Logic (Chasing the player)
+  useEffect(() => {
+    const moveInterval = setInterval(() => {
+      setMonsters(prev => prev.map(m => {
+        const config = MONSTER_CONFIGS[m.type];
+        // Basic vector math: move toward player
+        const dx = playerPos.x - m.x;
+        const dy = playerPos.y - m.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Only move if far away (don't overlap perfectly)
+        if (distance > 20) {
+          return {
+            ...m,
+            x: m.x + (dx / distance) * config.moveSpeed,
+            y: m.y + (dy / distance) * config.moveSpeed,
+            isFlipped: dx < 0 // Flip sprite based on direction
+          };
+        }
+        return m;
+      }));
+    }, 32); // 30fps movement
+    return () => clearInterval(moveInterval);
+  }, [playerPos]);
+
   const triggerSpellEffect = (spellKey) => {
     setLastCastSpell(spellKey);
     setTimeout(() => setLastCastSpell(null), 1000); // Animation duration
@@ -115,6 +160,9 @@ const SignRPG = () => {
     <div className="relative w-screen h-screen bg-slate-900 overflow-hidden font-sans">
       {/* 1. THE GAME GRID */}
       {RenderMap({ playerPos: playerPos })}
+      {monsters.map(m => (
+        <Monster key={m.id} data={m} playerPos={playerPos} />
+      ))}
       {<PlayerSprite currentMove={currentMove} lastCastSpell={lastCastSpell} />}
 
       {/* 2. WIZARD VISION */}
