@@ -11,10 +11,10 @@ const SPELL_HOLD_TIME = 500; // milliseconds
 const MOVE_SPEED = 5; // pixels per frame
 
 const SPELL_CONFIG = {
-  FIRE: { letters: "FIRE", icon: Flame, color: "text-orange-500", bgColor: "bg-orange-500" },
-  SHOCK: { letters: "SHOCK", icon: Zap, color: "text-yellow-400", bgColor: "bg-yellow-400" },
+  FIRE: { letters: "FIRE", icon: Flame, radius: 200, color: "text-orange-500", bgColor: "bg-orange-500" },
+  SHOCK: { letters: "SHOCK", icon: Zap, radius: 100, color: "text-yellow-400", bgColor: "bg-yellow-400" },
   WARD: { letters: "WARD", icon: Shield, color: "text-blue-400", bgColor: "bg-blue-400" },
-  GUST: { letters: "GUST", icon: Wind, color: "text-teal-400", bgColor: "bg-teal-400" },
+  GUST: { letters: "GUST", icon: Wind, radius: 150, color: "text-teal-400", bgColor: "bg-teal-400" },
   HEAL: { letters: "HEAL", icon: Sparkles, color: "text-pink-400", bgColor: "bg-pink-400" }
 };
 
@@ -141,11 +141,33 @@ const SignRPG = () => {
     return () => clearInterval(moveInterval);
   }, [playerPos]);
 
-  const triggerSpellEffect = (spellKey) => {
-    setLastCastSpell(spellKey);
-    setTimeout(() => setLastCastSpell(null), 1000); // Animation duration
-    console.log(`CASTING: ${spellKey}`);
-  };
+const triggerSpellEffect = (spellKey) => {
+  setLastCastSpell(spellKey);
+  const spell = SPELL_CONFIG[spellKey];
+
+  setMonsters(currentMonsters => {
+    return currentMonsters.filter(monster => {
+      const dx = monster.x - playerPos.x;
+      const dy = monster.y - playerPos.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      const isHit = distance <= spell.radius;
+
+      if (isHit) {
+        console.log(`${monster.type} hit by ${spellKey}!`);
+        return false; 
+        
+        // TODO: Add HP reduction logic later
+        // monster.hp -= spell.damage;
+        // return monster.hp > 0;
+      }
+
+      return true; // Monster was not hit, keep it in the array
+    });
+  });
+
+  setTimeout(() => setLastCastSpell(null), 1000);
+};
 
   // Dynamically decide which word to display in the UI slots
   const getTargetSpell = () => {
@@ -164,6 +186,20 @@ const SignRPG = () => {
         <Monster key={m.id} data={m} playerPos={playerPos} />
       ))}
       {<PlayerSprite currentMove={currentMove} lastCastSpell={lastCastSpell} />}
+      {lastCastSpell && (
+        <div 
+          className="absolute rounded-full border-2 animate-out fade-out zoom-in duration-500"
+          style={{
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: SPELL_CONFIG[lastCastSpell].radius * 2,
+            height: SPELL_CONFIG[lastCastSpell].radius * 2,
+            backgroundColor: 'rgba(255, 100, 0, 0.1)',
+            borderColor: 'rgba(255, 100, 0, 0.5)',
+          }}
+        />
+      )}
 
       {/* 2. WIZARD VISION */}
       <div className="absolute top-6 right-6 w-64 group">

@@ -15,7 +15,7 @@ const PlayerSprite = ({ currentMove, lastCastSpell }) => {
   useEffect(() => {
     if (lastCastSpell) {
       setAction('CAST');
-    } else if (currentMove && currentMove !== "None") {
+    } else if (['W', 'A', 'S', 'D'].includes(currentMove) && currentMove !== "None") {
       setAction('WALK');
     } else {
       setAction('IDLE');

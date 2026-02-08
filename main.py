@@ -12,7 +12,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
 
 # Target frame rate for the game loop (in FPS)
-GAME_FRAME_RATE = 30  
+GAME_FRAME_RATE = 60  
 BASE_CONFIDENCE_THRESHOLD = 0.9  # Minimum confidence to consider a detection valid
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -75,7 +75,7 @@ def video_stream_task():
             'buffer': "FI"
         })
         
-        socketio.sleep(1.0 / GAME_FRAME_RATE)
+        socketio.sleep(1.0 / GAME_FRAME_RATE)  # Sleep to maintain target frame rate
 
     cap.release()
 
