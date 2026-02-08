@@ -1,7 +1,8 @@
 import TILE_TYPES from './Tiles';
 import { MAP_DATA, TILE_SIZE } from '../config/map';
+import React from 'react';
 
-const RenderMap = ({ playerPos }) => {
+const RenderMap = React.memo(({ playerPos }) => {
   const mapHeight = MAP_DATA.length;
   const mapWidth = MAP_DATA[0].length;
 
@@ -40,6 +41,6 @@ const RenderMap = ({ playerPos }) => {
   }
 
   return <div className="absolute inset-0 overflow-hidden bg-slate-950">{tiles}</div>;
-};
+});
 
 export default RenderMap;

@@ -181,7 +181,7 @@ const triggerSpellEffect = (spellKey) => {
   return (
     <div className="relative w-screen h-screen bg-slate-900 overflow-hidden font-sans">
       {/* 1. THE GAME GRID */}
-      {RenderMap({ playerPos: playerPos })}
+      <RenderMap playerPos={playerPos} />      
       {monsters.map(m => (
         <Monster key={m.id} data={m} playerPos={playerPos} />
       ))}
