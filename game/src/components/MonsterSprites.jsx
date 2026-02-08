@@ -4,16 +4,30 @@ const MONSTER_CONFIGS = {
   GOBLIN: { 
     src: '/assets/goblin/Run.png', 
     frames: 8, 
-    speed: 150, 
+    speed: 120, 
     size: 64,
-    moveSpeed: 1.5 
+    moveSpeed: 1.8 
   },
   SKELETON: { 
     src: '/assets/skeleton/Walk.png', 
     frames: 4, 
-    speed: 120, 
+    speed: 100, 
     size: 64,
-    moveSpeed: 2.0 
+    moveSpeed: 1.3
+  },
+  EYE: {
+    src: '/assets/flying_eye/Flight.png', 
+    frames: 8, 
+    speed: 135, 
+    size: 64,
+    moveSpeed: 2.1 
+  },
+  MUSHROOM: {
+    src: '/assets/mushroom/Run.png', 
+    frames: 8, 
+    speed: 80, 
+    size: 64,
+    moveSpeed: 1.0 
   }
 };
 

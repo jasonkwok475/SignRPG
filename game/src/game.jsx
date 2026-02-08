@@ -13,10 +13,12 @@ const SPELL_DISPLAY_TIME = 1000; // milliseconds
 const MOVE_SPEED = 5; // pixels per frame
 const FPS = 30;
 
-const MAXIMUM_MONSTERS = 15;
+const MAXIMUM_MONSTERS = 25;
 const MONSTER_SPAWN_RADIUS = 400; 
 const MONSTER_SPAWN_INTERVAL = 3000; // milliseconds
 const MONSTER_MOVE_RADIUS = 20; // Distance at which monsters start moving towards the player
+
+const MONSTER_TYPES = Object.keys(MONSTER_CONFIGS);
 
 const MOVE_CONFIG = {
   UP: { letter: "W", icon: ArrowUp, key: "↑" },
@@ -112,9 +114,11 @@ const SignRPG = () => {
   useEffect(() => {
     const spawnInterval = setInterval(() => {
       if (monsters.length < MAXIMUM_MONSTERS) { // Cap monster count
+        const randomType = MONSTER_TYPES[Math.floor(Math.random() * MONSTER_TYPES.length)];
+
         const newMonster = {
           id: Math.random(),
-          type: Math.random() > 0.5 ? 'GOBLIN' : 'SKELETON', //TODO: Add more types later
+          type: randomType,
           // Spawn randomly around the player
           x: playerPos.x + (MONSTER_SPAWN_RADIUS * (Math.random() * 2 - 1)),
           y: playerPos.y + (MONSTER_SPAWN_RADIUS * (Math.random() * 2 - 1)),
