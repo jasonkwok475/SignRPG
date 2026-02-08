@@ -37,12 +37,6 @@ const SignRPG = () => {
     GUST: { letters: "GUST", icon: Wind, radius: 150, color: "text-teal-400", bgColor: "bg-teal-400" },
     HEAL: { letters: "HEAL", icon: Sparkles, color: "text-pink-400", bgColor: "bg-pink-400" }
   });
-
-  const handleSpellChange = (index, newValue) => {
-    const updatedSpells = [...spells];
-    updatedSpells[index] = newValue;
-    setSpells(updatedSpells);
-  };
   
   // Ref to track the timer for the hold requirement
   const holdTimerRef = useRef(null);
