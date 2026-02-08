@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Flame, Shield, Zap, Sparkles, Wind, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, X, Save } from 'lucide-react';
 import { io } from "socket.io-client";
 import SpellIcon from './components/SpellIcon';

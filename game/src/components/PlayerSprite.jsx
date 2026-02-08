@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const ANIMATIONS = {
   IDLE: { src: '/assets/wizard/Idle.png', frames: 6, speed: 200 },

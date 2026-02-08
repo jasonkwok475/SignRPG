@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Play, Settings, Sparkles, X, Volume2, Video } from 'lucide-react';
+import { useState } from 'react';
+import { Play, Settings, Sparkles, X, Video } from 'lucide-react';
 
 const TitleScreen = ({ onStart }) => {
   const [showSettings, setShowSettings] = useState(false);
@@ -62,16 +62,15 @@ const TitleScreen = ({ onStart }) => {
                 </label>
                 <select className="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg outline-none focus:border-purple-500 transition-colors">
                   <option>Default Webcam</option>
-                  <option>Secondary Camera</option>
                 </select>
               </div>
-
+{/* 
               <div className="space-y-3">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
                    <Volume2 size={14} /> Arcane Audio
                 </label>
                 <input type="range" className="w-full accent-purple-500" />
-              </div>
+              </div> */}
 
               <button 
                 onClick={() => setShowSettings(false)}
