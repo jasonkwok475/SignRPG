@@ -8,7 +8,15 @@ import PlayerSprite from './components/PlayerSprite';
 import { Monster, MONSTER_CONFIGS } from './components/MonsterSprites';
 
 const SPELL_HOLD_TIME = 500; // milliseconds
+const SPELL_DISPLAY_TIME = 1000; // milliseconds
+
 const MOVE_SPEED = 5; // pixels per frame
+const FPS = 30;
+
+const MAXIMUM_MONSTERS = 15;
+const MONSTER_SPAWN_RADIUS = 400; 
+const MONSTER_SPAWN_INTERVAL = 3000; // milliseconds
+const MONSTER_MOVE_RADIUS = 20; // Distance at which monsters start moving towards the player
 
 const MOVE_CONFIG = {
   UP: { letter: "W", icon: ArrowUp, key: "↑" },
@@ -59,12 +67,12 @@ const SignRPG = () => {
         x: currentMove === "A" ? prev.x - MOVE_SPEED : currentMove === "D" ? prev.x + MOVE_SPEED : prev.x,
         y: currentMove === "W" ? prev.y - MOVE_SPEED : currentMove === "S" ? prev.y + MOVE_SPEED : prev.y,
       }));
-    }, 32); // ~30 FPS
+    }, 1000 / FPS);
 
     return () => clearInterval(interval);
   }, [currentMove]);
 
-  // Logic to handle the 0.5s hold and buffer updates
+  // Logic to handle the spell hold and buffer updates
   useEffect(() => {
     if (!currentSpell || currentSpell === "None") {
       clearTimeout(holdTimerRef.current);
@@ -103,33 +111,33 @@ const SignRPG = () => {
   // Spawning Logic
   useEffect(() => {
     const spawnInterval = setInterval(() => {
-      if (monsters.length < 5) { // Cap monster count
+      if (monsters.length < MAXIMUM_MONSTERS) { // Cap monster count
         const newMonster = {
           id: Math.random(),
-          type: Math.random() > 0.5 ? 'GOBLIN' : 'SKELETON',
+          type: Math.random() > 0.5 ? 'GOBLIN' : 'SKELETON', //TODO: Add more types later
           // Spawn randomly around the player
-          x: playerPos.x + (Math.random() * 800 - 400),
-          y: playerPos.y + (Math.random() * 800 - 400),
+          x: playerPos.x + (MONSTER_SPAWN_RADIUS * (Math.random() * 2 - 1)),
+          y: playerPos.y + (MONSTER_SPAWN_RADIUS * (Math.random() * 2 - 1)),
           hp: 30
         };
         setMonsters(prev => [...prev, newMonster]);
       }
-    }, 3000); // Spawn every 3 seconds
+    }, MONSTER_SPAWN_INTERVAL);
     return () => clearInterval(spawnInterval);
   }, [monsters.length, playerPos]);
 
-  // AI Movement Logic (Chasing the player)
+  // Monster Movement Logic (Chasing the player)
   useEffect(() => {
     const moveInterval = setInterval(() => {
       setMonsters(prev => prev.map(m => {
         const config = MONSTER_CONFIGS[m.type];
-        // Basic vector math: move toward player
+
         const dx = playerPos.x - m.x;
         const dy = playerPos.y - m.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Only move if far away (don't overlap perfectly)
-        if (distance > 20) {
+        // Only move if far away
+        if (distance > MONSTER_MOVE_RADIUS) {
           return {
             ...m,
             x: m.x + (dx / distance) * config.moveSpeed,
@@ -139,7 +147,7 @@ const SignRPG = () => {
         }
         return m;
       }));
-    }, 32); // 30fps movement
+    }, 1000 / FPS);
     return () => clearInterval(moveInterval);
   }, [playerPos]);
 
@@ -168,14 +176,14 @@ const triggerSpellEffect = (spellKey) => {
     });
   });
 
-  setTimeout(() => setLastCastSpell(null), 1000);
+  setTimeout(() => setLastCastSpell(null), SPELL_DISPLAY_TIME);
 };
 
   // Dynamically decide which word to display in the UI slots
   const getTargetSpell = () => {
-    if (!spellBuffer) return "FIRE"; // Default display
+    if (!spellBuffer) return spells.FIRE.letters; // Default display
     const match = Object.values(spells).find(s => s.letters.startsWith(spellBuffer));
-    return match ? match.letters : "FIRE";
+    return match ? match.letters : spells.FIRE.letters; // Fallback to default if no match
   };
 
   const targetLetters = getTargetSpell();
