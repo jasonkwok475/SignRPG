@@ -3,6 +3,7 @@ import { Flame, Shield, Zap, Sparkles, Wind, ArrowUp, ArrowDown, ArrowLeft, Arro
 import { io } from "socket.io-client";
 import SpellIcon from './components/SpellIcon';
 import MovementKey from './components/MovementKey';
+import RenderMap from './components/RenderMap';
 
 const SPELL_HOLD_TIME = 250; // milliseconds
 
@@ -95,7 +96,7 @@ const SignRPG = () => {
   return (
     <div className="relative w-screen h-screen bg-slate-900 overflow-hidden font-sans">
       {/* 1. THE GAME GRID */}
-      <div className="absolute inset-0 opacity-40" style={{ backgroundImage: `radial-gradient(#334155 1px, transparent 1px)`, backgroundSize: '40px 40px' }} />
+      {RenderMap({ playerPos: { x: 0, y: 0 } })}
 
       {/* 2. WIZARD VISION */}
       <div className="absolute top-6 right-6 w-64 group">
@@ -142,10 +143,10 @@ const SignRPG = () => {
             return (
               <div 
                 key={i}
-                className={`w-12 h-16 rounded-lg flex items-center justify-center text-2xl font-black border-2 transition-all duration-300 ${
+                className={`w-8 h-12 rounded-lg flex items-center justify-center text-lg font-black border-2 transition-all duration-300 ${
                   isFilled 
                   ? "bg-orange-500 border-orange-300 text-white shadow-[0_0_20px_rgba(249,115,22,0.6)] scale-110" 
-                  : "bg-black/40 border-slate-700 text-slate-600"
+                  : "bg-slate-700 border-slate-600 text-slate-400"
                 }`}
               >
                 {char}
@@ -155,7 +156,7 @@ const SignRPG = () => {
         </div>
 
         {/* Spell Quickbar */}
-        <div className="bg-slate-900/90 border border-slate-700 p-2 rounded-2xl flex gap-4 shadow-2xl backdrop-blur-md">
+        <div className="bg-slate-900/90 border border-slate-700 p-2 rounded-xl flex gap-3 shadow-2xl backdrop-blur-md">
           {Object.entries(SPELL_CONFIG).map(([name, config]) => (
             <SpellIcon 
               key={name}

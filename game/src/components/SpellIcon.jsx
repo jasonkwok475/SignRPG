@@ -7,8 +7,8 @@ const SpellIcon = ({ icon, label, letters, color, spellBuffer, isGlowing }) => (
     </div>
     <div className="flex gap-0.5 mt-2">
       {letters.split("").map((letter, i) => (
-        <span key={i} className={`text-[9px] font-mono font-bold px-1 py-0.5 rounded ${
-          spellBuffer.startsWith(letters.substring(0, i + 1)) ? `${color} opacity-100` : "text-slate-600 opacity-60"
+        <span key={i} className={`text-[12px] font-mono font-bold px-1 py-0.5 rounded ${
+          spellBuffer.startsWith(letters.substring(0, i + 1)) ? `${color} opacity-100` : "text-white opacity-70"
         }`}>
           {letter}
         </span>
