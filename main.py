@@ -12,8 +12,10 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
 
 # Target frame rate for the game loop (in FPS)
-GAME_FRAME_RATE = 60  
+GAME_FRAME_RATE = 30  
 BASE_CONFIDENCE_THRESHOLD = 0.9  # Minimum confidence to consider a detection valid
+JPEG_QUALITY = 30  # Lower quality = smaller file size = faster transmission (1-95)
+EMIT_FRAME_SKIP = 1  # Emit every Nth frame (1 = every frame, 2 = every other frame, etc)
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIST = os.path.join(ROOT_DIR, 'game', 'dist')
@@ -40,6 +42,7 @@ def video_stream_task():
     cap = cv2.VideoCapture(0) # 0 is the webcam
     tracker = HandsTracker()
     classifier = ASLClassifier(MODEL_PATH)
+    emit_frame_count = 0  # Track frames for emission throttling
     
     while cap.isOpened():
 
@@ -49,9 +52,6 @@ def video_stream_task():
         if frame is None:
             continue  # Skip if frame couldn't be read
         
-        _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 60])
-        b64_frame = base64.b64encode(buffer).decode('utf-8')
-
         hand_buffer = {"left": {"letter": "", "confidence": 0.0}, "right": {"letter": "", "confidence": 0.0}}
 
         if tracker.left_hand:
@@ -68,13 +68,18 @@ def video_stream_task():
             else:
               hand_buffer["right"] = {"letter": "", "confidence": float(confidence)}
 
-        socketio.emit('video_data', {
-            'image': b64_frame,
-            'left': hand_buffer["left"],
-            'right': hand_buffer["right"],
-            'buffer': "FI"
-        })
+        # Only emit to client every EMIT_FRAME_SKIP frames to reduce network traffic
+        if emit_frame_count % EMIT_FRAME_SKIP == 0:
+            _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+            b64_frame = base64.b64encode(buffer).decode('utf-8')
+            
+            socketio.emit('video_data', {
+                'image': b64_frame,
+                'left': hand_buffer["left"],
+                'right': hand_buffer["right"]
+            })
         
+        emit_frame_count += 1
         socketio.sleep(1.0 / GAME_FRAME_RATE)  # Sleep to maintain target frame rate
 
     cap.release()
