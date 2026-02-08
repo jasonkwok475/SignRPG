@@ -4,8 +4,10 @@ import { io } from "socket.io-client";
 import SpellIcon from './components/SpellIcon';
 import MovementKey from './components/MovementKey';
 import RenderMap from './components/RenderMap';
+import PlayerSprite from './components/PlayerSprite';
 
-const SPELL_HOLD_TIME = 250; // milliseconds
+const SPELL_HOLD_TIME = 500; // milliseconds
+const MOVE_SPEED = 5; // pixels per frame
 
 const SPELL_CONFIG = {
   FIRE: { letters: "FIRE", icon: Flame, color: "text-orange-500", bgColor: "bg-orange-500" },
@@ -28,6 +30,7 @@ const SignRPG = () => {
   const [spellBuffer, setSpellBuffer] = useState(""); 
   const [videoFrame, setVideoFrame] = useState(null);
   const [lastCastSpell, setLastCastSpell] = useState(null); // For animation
+  const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
   
   // Ref to track the timer for the hold requirement
   const holdTimerRef = useRef(null);
@@ -41,6 +44,21 @@ const SignRPG = () => {
     });
     return () => socket.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!currentMove) return;
+    
+    const interval = setInterval(() => {
+      setPlayerPos(prev => ({
+        x: currentMove === "A" ? prev.x - MOVE_SPEED : currentMove === "D" ? prev.x + MOVE_SPEED : prev.x,
+        y: currentMove === "W" ? prev.y - MOVE_SPEED : currentMove === "S" ? prev.y + MOVE_SPEED : prev.y,
+      }));
+    }, 32); // ~30 FPS
+
+    console.log(playerPos);
+
+    return () => clearInterval(interval);
+  }, [currentMove]);
 
   // Logic to handle the 0.5s hold and buffer updates
   useEffect(() => {
@@ -96,7 +114,8 @@ const SignRPG = () => {
   return (
     <div className="relative w-screen h-screen bg-slate-900 overflow-hidden font-sans">
       {/* 1. THE GAME GRID */}
-      {RenderMap({ playerPos: { x: 0, y: 0 } })}
+      {RenderMap({ playerPos: playerPos })}
+      {<PlayerSprite currentMove={currentMove} lastCastSpell={lastCastSpell} />}
 
       {/* 2. WIZARD VISION */}
       <div className="absolute top-6 right-6 w-64 group">
