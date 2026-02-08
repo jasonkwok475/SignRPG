@@ -33,6 +33,7 @@ const SignRPG = () => {
   const [lastCastSpell, setLastCastSpell] = useState(null); // For animation
   const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
   const [monsters, setMonsters] = useState([]);
+  const [kills, setKills] = useState(0);
   
   // Ref to track the timer for the hold requirement
   const holdTimerRef = useRef(null);
@@ -154,7 +155,7 @@ const triggerSpellEffect = (spellKey) => {
       const isHit = distance <= spell.radius;
 
       if (isHit) {
-        console.log(`${monster.type} hit by ${spellKey}!`);
+        setKills(prev => prev + 1);
         return false; 
         
         // TODO: Add HP reduction logic later
@@ -180,7 +181,7 @@ const triggerSpellEffect = (spellKey) => {
 
   return (
     <div className="relative w-screen h-screen bg-slate-900 overflow-hidden font-sans">
-      {/* 1. THE GAME GRID */}
+      {/* THE GAME GRID */}
       <RenderMap playerPos={playerPos} />      
       {monsters.map(m => (
         <Monster key={m.id} data={m} playerPos={playerPos} />
@@ -201,7 +202,7 @@ const triggerSpellEffect = (spellKey) => {
         />
       )}
 
-      {/* 2. WIZARD VISION */}
+      {/* WIZARD VISION */}
       <div className="absolute top-6 right-6 w-64 group">
         <div className="bg-black/80 border-2 border-purple-500/50 rounded-xl overflow-hidden shadow-2xl">
           <div className="aspect-video bg-slate-800 flex items-center justify-center">
@@ -220,7 +221,7 @@ const triggerSpellEffect = (spellKey) => {
         </div>
       </div>
 
-      {/* 3. MOVEMENT CONTROLS (Bottom Left) */}
+      {/* MOVEMENT CONTROLS */}
       <div className="absolute bottom-10 left-10">
         <div className="bg-slate-900/90 border border-slate-700 p-4 rounded-2xl shadow-2xl backdrop-blur-md">
           <div className="text-purple-300 text-xs font-bold mb-3 text-center uppercase tracking-wider">Movement</div>
@@ -236,7 +237,13 @@ const triggerSpellEffect = (spellKey) => {
         </div>
       </div>
 
-      {/* 4. SPELL TOOLBAR */}
+      {/* KILL COUNT DISPLAY */}
+      <div className="absolute top-10 left-10 -translate-x-1/2 bg-slate-900/80 border border-slate-700 px-4 py-2 rounded-xl shadow-2xl backdrop-blur-md">
+        <p className="text-slate-300 text-sm">Monsters Defeated</p>
+        <p className="text-white text-2xl font-bold">{kills}</p>
+      </div>
+
+      {/* SPELL TOOLBAR */}
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6">
         
         {/* Dynamic Visual Buffer */}
@@ -272,6 +279,7 @@ const triggerSpellEffect = (spellKey) => {
             />
           ))}
         </div>
+
       </div>
     </div>
   );
