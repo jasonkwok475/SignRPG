@@ -51,6 +51,7 @@ const SignRPG = () => {
   // Ref to track the timer for the hold requirement
   const holdTimerRef = useRef(null);
 
+  // Handle websocket connection and incoming video data
   useEffect(() => {
     const socket = io("http://localhost:8000");
     socket.on("video_data", (data) => {
@@ -61,6 +62,7 @@ const SignRPG = () => {
     return () => socket.disconnect();
   }, []);
 
+  // Handle player movement based on currentMove state
   useEffect(() => {
     if (!currentMove) return;
     
@@ -155,33 +157,34 @@ const SignRPG = () => {
     return () => clearInterval(moveInterval);
   }, [playerPos]);
 
-const triggerSpellEffect = (spellKey) => {
-  setLastCastSpell(spellKey);
-  const spell = spells[spellKey];
+  // Spell Effect Logic
+  const triggerSpellEffect = (spellKey) => {
+    setLastCastSpell(spellKey);
+    const spell = spells[spellKey];
 
-  setMonsters(currentMonsters => {
-    return currentMonsters.filter(monster => {
-      const dx = monster.x - playerPos.x;
-      const dy = monster.y - playerPos.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+    setMonsters(currentMonsters => {
+      return currentMonsters.filter(monster => {
+        const dx = monster.x - playerPos.x;
+        const dy = monster.y - playerPos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
-      const isHit = distance <= spell.radius;
+        const isHit = distance <= spell.radius;
 
-      if (isHit) {
-        setKills(prev => prev + 1);
-        return false; 
-        
-        // TODO: Add HP reduction logic later
-        // monster.hp -= spell.damage;
-        // return monster.hp > 0;
-      }
+        if (isHit) {
+          setKills(prev => prev + 1);
+          return false; 
+          
+          // TODO: Add HP reduction logic later
+          // monster.hp -= spell.damage;
+          // return monster.hp > 0;
+        }
 
-      return true; // Monster was not hit, keep it in the array
+        return true; // Monster was not hit, keep it in the array
+      });
     });
-  });
 
-  setTimeout(() => setLastCastSpell(null), SPELL_DISPLAY_TIME);
-};
+    setTimeout(() => setLastCastSpell(null), SPELL_DISPLAY_TIME);
+  };
 
   // Dynamically decide which word to display in the UI slots
   const getTargetSpell = () => {
@@ -192,6 +195,7 @@ const triggerSpellEffect = (spellKey) => {
 
   const targetLetters = getTargetSpell();
 
+  // Main Render
   return (
     <div className="relative w-screen h-screen bg-slate-900 overflow-hidden font-sans">
       {/* Game Grid */}
