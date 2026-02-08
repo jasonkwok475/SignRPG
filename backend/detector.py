@@ -10,8 +10,8 @@ LANDMARKER_MODEL_PATH = os.path.join(ROOT_DIR, 'hand_landmarker.task')
 
 NUMBER_OF_HANDS = 2
 MIN_DETECTION_CONFIDENCE = 0.5
-FRAME_WIDTH = 640
-FRAME_HEIGHT = 360
+FRAME_WIDTH = 480
+FRAME_HEIGHT = 280
 
 class HandData:
     """Class to store and access hand landmark data"""

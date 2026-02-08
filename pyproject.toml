@@ -10,5 +10,7 @@ dependencies = [
     "flask-socketio>=5.6.0",
     "flask>=3.1.2",
     "mediapipe>=0.10.32",
+    "numpy>=2.4.2",
     "opencv-python>=4.13.0.92",
+    "tensorflow>=2.20.0",
 ]

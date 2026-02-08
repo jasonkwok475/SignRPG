@@ -13,10 +13,12 @@ CORS(app)
 
 # Target frame rate for the game loop (in FPS)
 GAME_FRAME_RATE = 30  
-BASE_CONFIDENCE_THRESHOLD = 0.8  # Minimum confidence to consider a detection valid
+BASE_CONFIDENCE_THRESHOLD = 0.9  # Minimum confidence to consider a detection valid
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIST = os.path.join(ROOT_DIR, 'game', 'dist')
+
+MODEL_PATH = os.path.join(ROOT_DIR, 'models', 'asl_classifier.h5')
 
 @app.route('/')
 def index():
@@ -37,7 +39,7 @@ def handle_connect():
 def video_stream_task():
     cap = cv2.VideoCapture(0) # 0 is the webcam
     tracker = HandsTracker()
-    classifier = ASLClassifier()
+    classifier = ASLClassifier(MODEL_PATH)
     
     while cap.isOpened():
 
@@ -55,16 +57,16 @@ def video_stream_task():
         if tracker.left_hand:
             letter, confidence = classifier.classify(tracker.get_left_hand())
             if confidence > BASE_CONFIDENCE_THRESHOLD:  # Only send if confidence is above threshold
-              hand_buffer["left"] = {"letter": letter, "confidence": confidence}
+              hand_buffer["left"] = {"letter": letter, "confidence": float(confidence)}
             else:
-              hand_buffer["left"] = {"letter": "", "confidence": confidence}
+              hand_buffer["left"] = {"letter": "", "confidence": float(confidence)}
 
         if tracker.right_hand:
             letter, confidence = classifier.classify(tracker.get_right_hand())
             if confidence > BASE_CONFIDENCE_THRESHOLD:  # Only send if confidence is above threshold
-              hand_buffer["right"] = {"letter": letter, "confidence": confidence}
+              hand_buffer["right"] = {"letter": letter, "confidence": float(confidence)}
             else:
-              hand_buffer["right"] = {"letter": "", "confidence": confidence}
+              hand_buffer["right"] = {"letter": "", "confidence": float(confidence)}
 
         socketio.emit('video_data', {
             'image': b64_frame,
