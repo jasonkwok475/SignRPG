@@ -2,6 +2,8 @@ import tensorflow as tf
 import numpy as np
 from backend.detector import HandData
 
+LOG_OUTPUT = 0 # Set to 1 to enable logging of prediction progress
+
 classes = ['A','B','C','D','E','F','G','H','I','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y']
 
 class ASLClassifier(tf.keras.Model):
@@ -12,7 +14,7 @@ class ASLClassifier(tf.keras.Model):
     def classify(self, hand_landmarks: HandData):
         # Preprocess the hand landmarks into the format expected by the model
         input_data = self.preprocess(hand_landmarks)
-        predictions = self.model.predict(input_data)
+        predictions = self.model.predict(input_data, verbose=LOG_OUTPUT)
         predicted_letter = self.get_letter_from_prediction(predictions)
         confidence = max(predictions[0])  # Get the confidence of the predicted letter
         return predicted_letter, confidence
