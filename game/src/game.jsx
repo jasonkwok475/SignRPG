@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Flame, Shield, Zap, Sparkles, Wind, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Flame, Shield, Zap, Sparkles, Wind, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, X, Save } from 'lucide-react';
 import { io } from "socket.io-client";
 import SpellIcon from './components/SpellIcon';
 import MovementKey from './components/MovementKey';
@@ -9,14 +9,6 @@ import { Monster, MONSTER_CONFIGS } from './components/MonsterSprites';
 
 const SPELL_HOLD_TIME = 500; // milliseconds
 const MOVE_SPEED = 5; // pixels per frame
-
-const SPELL_CONFIG = {
-  FIRE: { letters: "FIRE", icon: Flame, radius: 200, color: "text-orange-500", bgColor: "bg-orange-500" },
-  SHOCK: { letters: "SHOCK", icon: Zap, radius: 100, color: "text-yellow-400", bgColor: "bg-yellow-400" },
-  WARD: { letters: "WARD", icon: Shield, color: "text-blue-400", bgColor: "bg-blue-400" },
-  GUST: { letters: "GUST", icon: Wind, radius: 150, color: "text-teal-400", bgColor: "bg-teal-400" },
-  HEAL: { letters: "HEAL", icon: Sparkles, color: "text-pink-400", bgColor: "bg-pink-400" }
-};
 
 const MOVE_CONFIG = {
   UP: { letter: "W", icon: ArrowUp, key: "↑" },
@@ -29,11 +21,28 @@ const SignRPG = () => {
   const [currentMove, setCurrentMove] = useState("");
   const [currentSpell, setCurrentSpell] = useState(""); 
   const [spellBuffer, setSpellBuffer] = useState(""); 
-  const [videoFrame, setVideoFrame] = useState(null);
   const [lastCastSpell, setLastCastSpell] = useState(null); // For animation
+
+  const [videoFrame, setVideoFrame] = useState(null);
+  
   const [playerPos, setPlayerPos] = useState({ x: 0, y: 0 });
   const [monsters, setMonsters] = useState([]);
   const [kills, setKills] = useState(0);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [spells, setSpells] = useState({
+    FIRE: { letters: "FIRE", icon: Flame, radius: 200, color: "text-orange-500", bgColor: "bg-orange-500" },
+    SHOCK: { letters: "SHOCK", icon: Zap, radius: 100, color: "text-yellow-400", bgColor: "bg-yellow-400" },
+    WARD: { letters: "WARD", icon: Shield, color: "text-blue-400", bgColor: "bg-blue-400" },
+    GUST: { letters: "GUST", icon: Wind, radius: 150, color: "text-teal-400", bgColor: "bg-teal-400" },
+    HEAL: { letters: "HEAL", icon: Sparkles, color: "text-pink-400", bgColor: "bg-pink-400" }
+  });
+
+  const handleSpellChange = (index, newValue) => {
+    const updatedSpells = [...spells];
+    updatedSpells[index] = newValue;
+    setSpells(updatedSpells);
+  };
   
   // Ref to track the timer for the hold requirement
   const holdTimerRef = useRef(null);
@@ -58,8 +67,6 @@ const SignRPG = () => {
       }));
     }, 32); // ~30 FPS
 
-    console.log(playerPos);
-
     return () => clearInterval(interval);
   }, [currentMove]);
 
@@ -78,8 +85,8 @@ const SignRPG = () => {
         const newBuffer = prev + letter;
         
         // Check if the buffer matches any spell COMPLETELY
-        const completedSpell = Object.keys(SPELL_CONFIG).find(
-          key => SPELL_CONFIG[key].letters === newBuffer
+        const completedSpell = Object.keys(spells).find(
+          key => spells[key].letters === newBuffer
         );
 
         if (completedSpell) {
@@ -88,7 +95,7 @@ const SignRPG = () => {
         }
 
         // Check if the buffer is still a valid start of ANY spell
-        const isStillValid = Object.values(SPELL_CONFIG).some(
+        const isStillValid = Object.values(spells).some(
           spell => spell.letters.startsWith(newBuffer)
         );
 
@@ -144,7 +151,7 @@ const SignRPG = () => {
 
 const triggerSpellEffect = (spellKey) => {
   setLastCastSpell(spellKey);
-  const spell = SPELL_CONFIG[spellKey];
+  const spell = spells[spellKey];
 
   setMonsters(currentMonsters => {
     return currentMonsters.filter(monster => {
@@ -173,7 +180,7 @@ const triggerSpellEffect = (spellKey) => {
   // Dynamically decide which word to display in the UI slots
   const getTargetSpell = () => {
     if (!spellBuffer) return "FIRE"; // Default display
-    const match = Object.values(SPELL_CONFIG).find(s => s.letters.startsWith(spellBuffer));
+    const match = Object.values(spells).find(s => s.letters.startsWith(spellBuffer));
     return match ? match.letters : "FIRE";
   };
 
@@ -181,7 +188,7 @@ const triggerSpellEffect = (spellKey) => {
 
   return (
     <div className="relative w-screen h-screen bg-slate-900 overflow-hidden font-sans">
-      {/* THE GAME GRID */}
+      {/* Game Grid */}
       <RenderMap playerPos={playerPos} />      
       {monsters.map(m => (
         <Monster key={m.id} data={m} playerPos={playerPos} />
@@ -194,15 +201,15 @@ const triggerSpellEffect = (spellKey) => {
             left: '50%',
             top: '50%',
             transform: 'translate(-50%, -50%)',
-            width: SPELL_CONFIG[lastCastSpell].radius * 2,
-            height: SPELL_CONFIG[lastCastSpell].radius * 2,
+            width: spells[lastCastSpell].radius * 2,
+            height: spells[lastCastSpell].radius * 2,
             backgroundColor: 'rgba(255, 100, 0, 0.1)',
             borderColor: 'rgba(255, 100, 0, 0.5)',
           }}
         />
       )}
 
-      {/* WIZARD VISION */}
+      {/* Webcam */}
       <div className="absolute top-6 right-6 w-64 group">
         <div className="bg-black/80 border-2 border-purple-500/50 rounded-xl overflow-hidden shadow-2xl">
           <div className="aspect-video bg-slate-800 flex items-center justify-center">
@@ -221,7 +228,7 @@ const triggerSpellEffect = (spellKey) => {
         </div>
       </div>
 
-      {/* MOVEMENT CONTROLS */}
+      {/* Movement Controls */}
       <div className="absolute bottom-10 left-10">
         <div className="bg-slate-900/90 border border-slate-700 p-4 rounded-2xl shadow-2xl backdrop-blur-md">
           <div className="text-purple-300 text-xs font-bold mb-3 text-center uppercase tracking-wider">Movement</div>
@@ -237,13 +244,13 @@ const triggerSpellEffect = (spellKey) => {
         </div>
       </div>
 
-      {/* KILL COUNT DISPLAY */}
-      <div className="absolute top-10 left-10 -translate-x-1/2 bg-slate-900/80 border border-slate-700 px-4 py-2 rounded-xl shadow-2xl backdrop-blur-md">
+      {/* Kill Count Display */}
+      <div className="absolute top-10 left-10 bg-slate-900/80 border border-slate-700 px-4 py-2 rounded-xl shadow-2xl backdrop-blur-md">
         <p className="text-slate-300 text-sm">Monsters Defeated</p>
         <p className="text-white text-2xl font-bold">{kills}</p>
       </div>
 
-      {/* SPELL TOOLBAR */}
+      {/* Spell Toolbar */}
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6">
         
         {/* Dynamic Visual Buffer */}
@@ -267,7 +274,7 @@ const triggerSpellEffect = (spellKey) => {
 
         {/* Spell Quickbar */}
         <div className="bg-slate-900/90 border border-slate-700 p-2 rounded-xl flex gap-3 shadow-2xl backdrop-blur-md">
-          {Object.entries(SPELL_CONFIG).map(([name, config]) => (
+          {Object.entries(spells).map(([name, config]) => (
             <SpellIcon 
               key={name}
               icon={<config.icon size={24}/>} 
@@ -279,8 +286,64 @@ const triggerSpellEffect = (spellKey) => {
             />
           ))}
         </div>
-
       </div>
+
+      {/* Settings Button */}
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="absolute right-10 bottom-10 flex items-center gap-2 bg-slate-800/50 border border-slate-700 text-slate-300 font-bold py-2 px-4 rounded-xl transition-all hover:bg-slate-700 hover:text-white hover:border-slate-500 shadow-lg backdrop-blur-sm z-40"        >
+        <Sparkles size={16} />
+        Change Spells!
+      </button>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl w-full max-w-md shadow-2xl">
+            
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Sparkles className="text-yellow-400" size={20} />
+                Modify Spell Incantations
+              </h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+              {Object.entries(spells).map(([key, config]) => (
+                <div key={key} className="flex flex-col gap-2 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                  <div className="flex items-center gap-2">
+                    <config.icon size={16} className={config.color} />
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">{key}</span>
+                  </div>
+                  
+                  <input
+                    type="text"
+                    value={config.letters}
+                    onChange={(e) => {
+                      setSpells({
+                        ...spells,
+                        [key]: { ...config, letters: e.target.value.toUpperCase() }
+                      });
+                    }}
+                    className="bg-slate-950 border border-slate-700 text-white px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-mono"
+                    placeholder="Enter incantation..."
+                  />
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="w-full mt-6 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/20"
+            >
+              Save Grimoire
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
